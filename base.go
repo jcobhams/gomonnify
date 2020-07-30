@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -15,6 +16,11 @@ import (
 //Base or shared methods
 
 func newBase(config Config) *base {
+
+	if tm, ok := os.LookupEnv("GOMONNIFY_TESTMODE"); ok && strings.ToUpper(tm) == "ON" {
+		config.Environment = EnvTest
+	}
+
 	b := &base{
 		Config:     &config,
 		HTTPClient: &http.Client{Timeout: config.RequestTimeout},
@@ -25,6 +31,12 @@ func newBase(config Config) *base {
 		b.APIBaseUrl = APIBaseUrlSandbox
 	case EnvLive:
 		b.APIBaseUrl = APIBaseUrlLive
+	case EnvTest:
+		if testUrl, ok := os.LookupEnv("GOMONNIFY_TESTURL"); ok {
+			b.APIBaseUrl = testUrl
+		} else {
+			panic("gomonnify is running in test mode but no test url provided. Please Set GOMONNIFY_TESTURL env var")
+		}
 	}
 
 	return b

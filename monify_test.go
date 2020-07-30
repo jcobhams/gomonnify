@@ -11,11 +11,11 @@ import (
 var client *Monnify
 
 func TestMain(m *testing.M) {
-	t := new(testing.T)
-	mockAPIServer := testhelpers.MockAPIServer(t)
+	mockAPIServer := testhelpers.MockAPIServer()
 
+	os.Setenv("GOMONNIFY_TESTMODE", "ON")
+	os.Setenv("GOMONNIFY_TESTURL", mockAPIServer.URL)
 	client, _ = New(DefaultConfig)
-	client.ReservedAccounts.APIBaseUrl = mockAPIServer.URL
 
 	os.Exit(m.Run())
 }

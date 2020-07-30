@@ -8,8 +8,9 @@ import (
 )
 
 const (
-	EnvSandbox Environment = "sandbox"
-	EnvLive    Environment = "live"
+	EnvSandbox Environment = "sandbox" //Sandbox environment for development
+	EnvLive    Environment = "live"    //Live environmrnt
+	EnvTest    Environment = "test"    //Test environment used during unit/integration testing
 
 	SandBoxAPIKey       string = "MK_TEST_SAF7HR5F3F"
 	SandBoxSecretKey    string = "4SY6TNL8CK3VPRSBTHTRG2N8XXEGC6NL"

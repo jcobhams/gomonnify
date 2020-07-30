@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"testing"
 )
 
 //Testhelpers contains utility methods to ease third party unit/integration testing
@@ -305,7 +304,7 @@ func mockResendOTPResponseData() string {
 }
 
 //MockAPIServer initializes a test HTTP server useful for request mocking, Integration tests and Client configuration
-func MockAPIServer(t *testing.T) *httptest.Server {
+func MockAPIServer() *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-type", "application/json")
 
