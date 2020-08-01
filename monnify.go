@@ -16,8 +16,8 @@ const (
 	SandBoxSecretKey    string = "4SY6TNL8CK3VPRSBTHTRG2N8XXEGC6NL"
 	DefaultContractCode string = "4934121686"
 
-	APIBaseUrlSandbox string = "https://sandbox.monnify.com/api/v1"
-	APIBaseUrlLive    string = "https://api.monnify.com/api/v1"
+	APIBaseUrlSandbox string = "https://sandbox.monnify.com/api"
+	APIBaseUrlLive    string = "https://api.monnify.com/api"
 
 	RequestTimeout time.Duration = 5 * time.Second
 
@@ -33,6 +33,14 @@ const (
 	NotificationInterval20  = params.NotificationInterval20
 	NotificationInterval50  = params.NotificationInterval50
 	NotificationInterval100 = params.NotificationInterval100
+
+	PaymentStatusPaid          string = "PAID"
+	PaymentStatusPending       string = "PENDING"
+	PaymentStatusOverpaid      string = "OVERPAID"
+	PaymentStatusPartiallyPaid string = "PARTIALLY_PAID"
+	PaymentStatusExpired       string = "EXPIRED"
+	PaymentStatusFailed        string = "FAILED"
+	PaymentStatusCancelled     string = "CANCELLED"
 )
 
 var (
@@ -58,8 +66,9 @@ func New(config Config) (*Monnify, error) {
 	base := newBase(config)
 
 	m := &Monnify{
-		ReservedAccounts: &reservedAccounts{base},
+		General:          &general{base, nil},
 		Disbursements:    &disbursements{base},
+		ReservedAccounts: &reservedAccounts{base},
 	}
 	return m, nil
 }

@@ -1,6 +1,7 @@
 package gomonnify
 
 import (
+	"fmt"
 	"github.com/jcobhams/gomonnify/params"
 	"github.com/jcobhams/gomonnify/testhelpers"
 	"github.com/stretchr/testify/assert"
@@ -159,4 +160,39 @@ func TestDisbursements_ResendOTP(t *testing.T) {
 	r, err := client.Disbursements.ResendOTP(testhelpers.TransferReference)
 	assert.Nil(t, err)
 	assert.NotNil(t, r)
+}
+
+func TestGeneral_GetTransaction(t *testing.T) {
+	tx, err := client.General.GetTransaction(testhelpers.TransferReference)
+	assert.Nil(t, err)
+	assert.Equal(t, PaymentStatusPaid, tx.ResponseBody.PaymentStatus)
+	assert.Equal(t, fmt.Sprintf("%v", testhelpers.Amount), tx.ResponseBody.AmountPaid)
+}
+
+func TestGeneral_VerifyTransaction(t *testing.T) {
+	tx, _ := client.General.GetTransaction(testhelpers.TransferReference)
+	assert.False(t, client.General.VerifyTransaction(&tx.ResponseBody, false))
+
+	//Set Secret Key To Be Test Environemnt Secret Key
+	client.General.Config.SecretKey = testhelpers.SecretKey
+	tx, _ = client.General.GetTransaction(testhelpers.TransferReference)
+	assert.True(t, client.General.VerifyTransaction(&tx.ResponseBody, false))
+	assert.True(t, client.General.VerifyTransaction(&tx.ResponseBody, true))
+}
+
+func TestGeneral_GetBanks(t *testing.T) {
+	b, err := client.General.GetBanks()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(b.ResponseBody))
+	assert.NotEmpty(t, b.ResponseBody[0].Name)
+
+	bc, err := client.General.GetBanksUseCache()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(bc.ResponseBody))
+	assert.NotEmpty(t, bc.ResponseBody[0].Name)
+
+	client.General.InvalidateBankCache()
+	bc, err = client.General.GetBanksUseCache()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(bc.ResponseBody))
 }

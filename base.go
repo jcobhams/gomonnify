@@ -44,7 +44,7 @@ func newBase(config Config) *base {
 
 func (b *base) Login() (LoginResponse, error) {
 	result := LoginResponse{}
-	url := fmt.Sprintf("%v/auth/login", b.APIBaseUrl)
+	url := fmt.Sprintf("%v/v1/auth/login", b.APIBaseUrl)
 
 	rawResponse, statusCode, err := b.postRequest(url, requestAuthTypeBasic, nil)
 	if err != nil {

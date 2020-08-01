@@ -1,6 +1,7 @@
 package testhelpers
 
 import (
+	"crypto/sha512"
 	"fmt"
 	"log"
 	"net/http"
@@ -35,6 +36,9 @@ const (
 	ValidOTP             string  = "111111"
 	AvailableBalance     float64 = 500.99
 	LedgerBalance        float64 = 500.98
+	PaymentReference     string  = "330854835"
+	PaidOn               string  = "26/02/2020 09:38:13 AM"
+	SecretKey            string  = "SECRET_KEY"
 )
 
 func mockLoginResponseData() string {
@@ -303,6 +307,85 @@ func mockResendOTPResponseData() string {
 }`
 }
 
+func mockTransactionStatusResponseData() string {
+	return fmt.Sprintf(`{
+    "requestSuccessful": true,
+    "responseMessage": "success",
+    "responseCode": "0",
+    "responseBody": {
+        "transactionReference": "%v",
+        "paymentReference": "%v",
+        "amountPaid": "%v",
+        "totalPayable": "%v",
+        "settlementAmount": "99.21",
+        "paidOn": "%v",
+		"transactionHash": "%v",
+        "paymentStatus": "PAID",
+        "paymentDescription": "LahrayWeb",
+        "currency": "NGN",
+        "paymentMethod": "ACCOUNT_TRANSFER",
+        "product": {
+            "type": "WEB_SDK",
+            "reference": "330854835"
+        },
+        "cardDetails": null,
+        "accountDetails": {
+            "accountName": "DAMILARE SAMUEL OGUNNAIKE",
+            "accountNumber": "******7503",
+            "bankCode": "000001",
+            "amountPaid": "100.00"
+        },
+        "accountPayments": [
+            {
+                "accountName": "%v",
+                "accountNumber": "******7503",
+                "bankCode": "000001",
+                "amountPaid": "%v"
+            }
+        ],
+        "customer": {
+            "email": "%v",
+            "name": "%v"
+        },
+        "metaData": {
+            "name": "Damilare",
+            "age": "45"
+        }
+    }
+}`, TransferReference, PaymentReference, Amount, Amount, PaidOn, GenerateTransactionHash(SecretKey), AccountName, Amount, CustomerEmail, CustomerName)
+}
+
+func mockGetBanksResponseData() string {
+	return fmt.Sprintf(`{
+    "requestSuccessful": true,
+    "responseMessage": "success",
+    "responseCode": "0",
+    "responseBody": [
+        {
+            "name": "Access bank",
+            "code": "044",
+            "ussdTemplate": "*901*Amount*AccountNumber#",
+            "baseUssdCode": "*901#",
+            "transferUssdTemplate": "*901*AccountNumber#"
+        },
+        {
+            "name": "Coronation Bank",
+            "code": "559",
+            "ussdTemplate": null,
+            "baseUssdCode": null,
+            "transferUssdTemplate": null
+        }
+	]
+}`)
+}
+
+func GenerateTransactionHash(secretKey string) string {
+	rawStr := fmt.Sprintf("%v|%v|%v|%v|%v", secretKey, PaymentReference, Amount, PaidOn, TransferReference)
+	h := sha512.New()
+	h.Write([]byte(rawStr))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
 //MockAPIServer initializes a test HTTP server useful for request mocking, Integration tests and Client configuration
 func MockAPIServer() *httptest.Server {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -310,7 +393,7 @@ func MockAPIServer() *httptest.Server {
 
 		switch r.URL.Path {
 
-		case "/auth/login":
+		case "/v1/auth/login":
 			switch r.Method {
 			case http.MethodPost:
 				w.WriteHeader(200)
@@ -319,7 +402,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: POST request expected in Login() method or /auth/login endpoint, Got: %v", r.Method)
 			}
 
-		case "/bank-transfer/reserved-accounts":
+		case "/v1/bank-transfer/reserved-accounts":
 			switch r.Method {
 			case http.MethodPost:
 				w.WriteHeader(200)
@@ -328,7 +411,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: POST request expected in reservedAccounts.ReserveAccount() method or /bank-transfer/reserved-accounts endpoint, Got: %v", r.Method)
 			}
 
-		case fmt.Sprintf("/bank-transfer/reserved-accounts/%v", AccountReference):
+		case fmt.Sprintf("/v1/bank-transfer/reserved-accounts/%v", AccountReference):
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(200)
@@ -337,7 +420,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: GET request expected in reservedAccounts.Details() method or /bank-transfer/reserved-accounts/{{accountReference}} endpoint, Got: %v", r.Method)
 			}
 
-		case fmt.Sprintf("/bank-transfer/reserved-accounts/%v", AccountNumber):
+		case fmt.Sprintf("/v1/bank-transfer/reserved-accounts/%v", AccountNumber):
 			switch r.Method {
 			case http.MethodDelete:
 				w.WriteHeader(200)
@@ -346,7 +429,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: DELETE request expected in reservedAccounts.Deallocate() method or /bank-transfer/reserved-accounts/{{accountNumber}} endpoint, Got: %v", r.Method)
 			}
 
-		case "/bank-transfer/reserved-accounts/transactions":
+		case "/v1/bank-transfer/reserved-accounts/transactions":
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(200)
@@ -355,7 +438,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: GET request expected in reservedAccounts.Transactions() method or /bank-transfer/reserved-accounts/transactions endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/single":
+		case "/v1/disbursements/single":
 			switch r.Method {
 			case http.MethodPost:
 				w.WriteHeader(200)
@@ -364,7 +447,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: POST request expected in disbursements.SingleTransfer() method or /disbursements/single endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/batch":
+		case "/v1/disbursements/batch":
 			switch r.Method {
 			case http.MethodPost:
 				w.WriteHeader(200)
@@ -373,7 +456,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: POST request expected in disbursements.BulkTransfer() method or /disbursements/batch endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/single/validate-otp":
+		case "/v1/disbursements/single/validate-otp":
 			switch r.Method {
 			case http.MethodPost:
 				w.WriteHeader(200)
@@ -382,7 +465,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: POST request expected in disbursements.AuthorizeSingleTransfer() method or /disbursements/single/validate-otp endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/batch/validate-otp":
+		case "/v1/disbursements/batch/validate-otp":
 			switch r.Method {
 			case http.MethodPost:
 				w.WriteHeader(200)
@@ -391,7 +474,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: POST request expected in disbursements.AuthorizeBulkTransfer() method or /disbursements/batch/validate-otp endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/single/summary":
+		case "/v1/disbursements/single/summary":
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(200)
@@ -400,7 +483,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: GET request expected in disbursements.SingleTransferDetails() method or /disbursements/single/summary endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/batch/summary":
+		case "/v1/disbursements/batch/summary":
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(200)
@@ -409,7 +492,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: GET request expected in disbursements.SingleTransferDetails() method or /disbursements/single/summary endpoint, Got: %v", r.Method)
 			}
 
-		case fmt.Sprintf("/disbursements/bulk/%v/transactions", BatchReference):
+		case fmt.Sprintf("/v1/disbursements/bulk/%v/transactions", BatchReference):
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(200)
@@ -418,7 +501,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: GET request expected in disbursements.BulkTransferDetails() method or /disbursements/bulk/{{batchReference}}/transactions endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/single/transactions":
+		case "/v1/disbursements/single/transactions":
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(200)
@@ -427,7 +510,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: GET request expected in disbursements.SingleTransferDetails() method or /disbursements/single/transactions endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/account/validate":
+		case "/v1/disbursements/account/validate":
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(200)
@@ -436,7 +519,7 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: GET request expected in disbursements.ValidateAccountNumber() method or /disbursements/account/validate endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/wallet-balance":
+		case "/v1/disbursements/wallet-balance":
 			switch r.Method {
 			case http.MethodGet:
 				w.WriteHeader(200)
@@ -445,13 +528,31 @@ func MockAPIServer() *httptest.Server {
 				log.Fatalf("gomonnify.testhelpers: GET request expected in disbursements.WalletBalance() method or /disbursements/wallet-balance endpoint, Got: %v", r.Method)
 			}
 
-		case "/disbursements/single/resend-otp":
+		case "/v1/disbursements/single/resend-otp":
 			switch r.Method {
 			case http.MethodPost:
 				w.WriteHeader(200)
 				fmt.Fprintf(w, mockResendOTPResponseData())
 			default:
 				log.Fatalf("gomonnify.testhelpers: POST request expected in disbursements.ResendOTP() method or /disbursements/single/resend-otp endpoint, Got: %v", r.Method)
+			}
+
+		case fmt.Sprintf("/v2/transactions/%v", TransferReference):
+			switch r.Method {
+			case http.MethodGet:
+				w.WriteHeader(200)
+				fmt.Fprintf(w, mockTransactionStatusResponseData())
+			default:
+				log.Fatalf("gomonnify.testhelpers: GET request expected in general.GetTransaction() method or /v2/transactions/{{reference}}, Got: %v", r.Method)
+			}
+
+		case "/v1/banks":
+			switch r.Method {
+			case http.MethodGet:
+				w.WriteHeader(200)
+				fmt.Fprintf(w, mockGetBanksResponseData())
+			default:
+				log.Fatalf("gomonnify.testhelpers: GET request expected in general.GetBanks() method or /v1/banks, Got: %v", r.Method)
 			}
 
 		}

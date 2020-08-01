@@ -30,22 +30,23 @@ type (
 
 	general struct {
 		*base
+		banks *BanksResponse
 	}
 
 	Monnify struct {
-		//General          *general
+		General *general
 		//Invoicing        *invoicing
 		Disbursements    *disbursements
 		ReservedAccounts *reservedAccounts
 	}
 
-	//Config is used to initialize the Monnify client.
-	//Environment - sets the current environment. Sandbox or Live
-	//APIKey - well pretty obvious :)
-	//SecretKey - same as above
-	//RequestTimeout - used to set a deadline on the HTTP requests made. defaults to 5seconds.
-	//setting it to 0 to ignores timeout and could make request wait indefinitely (not recommended).
-	//DefaultContractCode - used by some endpoints. is not provided in the endpoint method params. Not required.
+	// Config is used to initialize the Monnify client.
+	// Environment - sets the current environment. Sandbox or Live
+	// APIKey - well pretty obvious :)
+	// SecretKey - same as above
+	// RequestTimeout - used to set a deadline on the HTTP requests made. defaults to 5seconds.
+	// setting it to 0 to ignores timeout and could make request wait indefinitely (not recommended).
+	// DefaultContractCode - used by some endpoints. is not provided in the endpoint method params. Not required.
 	Config struct {
 		Environment         Environment
 		APIKey              string
@@ -59,6 +60,55 @@ type (
 		RequestSuccessful bool   `json:"requestSuccessful"`
 		ResponseMessage   string `json:"responseMessage"`
 		ResponseCode      string `json:"responseCode"`
+	}
+
+	GeneralTransactionResponse struct {
+		apiResponseMeta
+		ResponseBody GeneralTransaction `json:"responseBody"`
+	}
+
+	GeneralTransaction struct {
+		TransactionReference string `json:"transactionReference"`
+		PaymentReference     string `json:"paymentReference"`
+		AmountPaid           string `json:"amountPaid"`
+		TotalPayable         string `json:"totalPayable"`
+		SettlementAmount     string `json:"settlementAmount"`
+		PaidOn               string `json:"paidOn"`
+		PaymentStatus        string `json:"paymentStatus"`
+		PaymentDescription   string `json:"paymentDescription"`
+		TransactionHash      string `json:"transactionHash"`
+		Currency             string `json:"currency"`
+		PaymentMethod        string `json:"paymentMethod"`
+		Product              struct {
+			Type      string `json:"type"`
+			Reference string `json:"reference"`
+		} `json:"product"`
+		CardDetails struct {
+			CardType          string `json:"cardType"`
+			AuthorizationCode string `json:"authorizationCode"`
+			Last4             string `json:"last4"`
+			ExpMonth          string `json:"expMonth"`
+			ExpYear           string `json:"expYear"`
+			Bin               string `json:"bin"`
+			Reusable          bool   `json:"reusable"`
+		} `json:"cardDetails"`
+		AccountDetails  accountDetails   `json:"accountDetails"`
+		AccountPayments []accountDetails `json:"accountPayments"`
+		Customer        struct {
+			Email string `json:"email"`
+			Name  string `json:"name"`
+		} `json:"customer"`
+		MetaData struct {
+			Name string `json:"name"`
+			Age  string `json:"age"`
+		}
+	}
+
+	accountDetails struct {
+		AccountName   string `json:"accountName"`
+		AccountNumber string `json:"accountNumber"`
+		BankCode      string `json:"bankCode"`
+		AmountPaid    string `json:"amountPaid"`
 	}
 
 	LoginResponse struct {
@@ -103,10 +153,10 @@ type (
 		} `json:"responseBody"`
 	}
 
-	TransactionsResponse struct {
+	ReservedAccountTransactionsResponse struct {
 		apiResponseMeta
 		ResponseBody struct {
-			Content  []Transaction `json:"content"`
+			Content  []ReservedAccountTransaction `json:"content"`
 			Pageable struct {
 				Sort struct {
 					Sorted   bool `json:"sorted"`
@@ -135,7 +185,7 @@ type (
 		} `json:"responseBody"`
 	}
 
-	Transaction struct {
+	ReservedAccountTransaction struct {
 		CustomerDTO struct {
 			Email        string `json:"email"`
 			Name         string `json:"name"`
@@ -272,5 +322,18 @@ type (
 		ResponseBody struct {
 			Message string `json:"message"`
 		} `json:"responseBody"`
+	}
+
+	BanksResponse struct {
+		apiResponseMeta
+		ResponseBody []Bank `json:"responseBody"`
+	}
+
+	Bank struct {
+		Name                 string `json:"name"`
+		Code                 string `json:"code"`
+		USSDTemplate         string `json:"ussdTemplate"`
+		BaseUSSDCode         string `json:"baseUssdCode"`
+		TransferUSSDTemplate string `json:"transferUssdTemplate"`
 	}
 )

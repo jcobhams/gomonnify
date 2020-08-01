@@ -11,7 +11,7 @@ import (
 //ReserveAccount reserves an account number for a customer based on the provided configuration params.
 //Docs: https://docs.teamapt.com/display/MON/Reserving+An+Account
 func (r *reservedAccounts) ReserveAccount(params params.ReserveAccountParam) (*ReserveAccountResponse, error) {
-	url := fmt.Sprintf("%v/bank-transfer/reserved-accounts", r.APIBaseUrl)
+	url := fmt.Sprintf("%v/v1/bank-transfer/reserved-accounts", r.APIBaseUrl)
 	rawResponse, statusCode, err := r.postRequest(url, requestAuthTypeBearer, params)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (r *reservedAccounts) Details(accountReference string) (*ReserveAccountResp
 		return nil, errors.New("accountReference is required")
 	}
 
-	url := fmt.Sprintf("%v/bank-transfer/reserved-accounts/%v", r.APIBaseUrl, accountReference)
+	url := fmt.Sprintf("%v/v1/bank-transfer/reserved-accounts/%v", r.APIBaseUrl, accountReference)
 	rawResponse, statusCode, err := r.getRequest(url, requestAuthTypeBearer)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (r *reservedAccounts) Deallocate(accountNumber string) error {
 		return errors.New("accountNumber is required")
 	}
 
-	url := fmt.Sprintf("%v/bank-transfer/reserved-accounts/%v", r.APIBaseUrl, accountNumber)
+	url := fmt.Sprintf("%v/v1/bank-transfer/reserved-accounts/%v", r.APIBaseUrl, accountNumber)
 	rawResponse, statusCode, err := r.deleteRequest(url, requestAuthTypeBearer)
 	if err != nil {
 		return err
@@ -84,18 +84,18 @@ func (r *reservedAccounts) Deallocate(accountNumber string) error {
 
 //Transactions fetches all the transaction on a reserved account for the provided account reference.
 //Docs: https://docs.teamapt.com/display/MON/Getting+all+transactions+on+a+reserved+account
-func (r *reservedAccounts) Transactions(accountReference string, page, size int) (*TransactionsResponse, error) {
+func (r *reservedAccounts) Transactions(accountReference string, page, size int) (*ReservedAccountTransactionsResponse, error) {
 	if accountReference == "" {
 		return nil, errors.New("accountNumber is required")
 	}
 
-	url := fmt.Sprintf("%v/bank-transfer/reserved-accounts/transactions?accountReference=%v&page=%v&size=%v", r.APIBaseUrl, accountReference, page, size)
+	url := fmt.Sprintf("%v/v1/bank-transfer/reserved-accounts/transactions?accountReference=%v&page=%v&size=%v", r.APIBaseUrl, accountReference, page, size)
 	rawResponse, statusCode, err := r.getRequest(url, requestAuthTypeBearer)
 	if err != nil {
 		return nil, err
 	}
 
-	var result TransactionsResponse
+	var result ReservedAccountTransactionsResponse
 	err = r.unmarshallJson(strings.NewReader(rawResponse), &result)
 	if err != nil {
 		return nil, err
