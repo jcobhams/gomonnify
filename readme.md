@@ -46,7 +46,7 @@ func main() {
 
 3. Invoice - Coming soon or open a PR :)
 
-4. General - Coming soon or open a PR :)
+4. General - Only `TransactionVerification`, `GetTransaction` and `GetBanks` are implemented.
 
 ### Test Helpers
 GoMonnify ships with nifty test helpers to ease unit and integration testing your code that import or relies on gomonnify.
