@@ -312,7 +312,43 @@ func mockTransactionStatusResponseData() string {
     "requestSuccessful": true,
     "responseMessage": "success",
     "responseCode": "0",
-    "responseBody": {
+    "responseBody": %v
+}`, FakeInflowNotificationPayload())
+}
+
+func mockGetBanksResponseData() string {
+	return fmt.Sprintf(`{
+    "requestSuccessful": true,
+    "responseMessage": "success",
+    "responseCode": "0",
+    "responseBody": [
+        {
+            "name": "Access bank",
+            "code": "044",
+            "ussdTemplate": "*901*Amount*AccountNumber#",
+            "baseUssdCode": "*901#",
+            "transferUssdTemplate": "*901*AccountNumber#"
+        },
+        {
+            "name": "Coronation Bank",
+            "code": "559",
+            "ussdTemplate": null,
+            "baseUssdCode": null,
+            "transferUssdTemplate": null
+        }
+	]
+}`)
+}
+
+func GenerateTransactionHash(secretKey string) string {
+	rawStr := fmt.Sprintf("%v|%v|%v|%v|%v", secretKey, PaymentReference, Amount, PaidOn, TransferReference)
+	h := sha512.New()
+	h.Write([]byte(rawStr))
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func FakeInflowNotificationPayload() string {
+	return fmt.Sprintf(`{
         "transactionReference": "%v",
         "paymentReference": "%v",
         "amountPaid": "%v",
@@ -351,39 +387,7 @@ func mockTransactionStatusResponseData() string {
             "name": "Damilare",
             "age": "45"
         }
-    }
-}`, TransferReference, PaymentReference, Amount, Amount, PaidOn, GenerateTransactionHash(SecretKey), AccountName, Amount, CustomerEmail, CustomerName)
-}
-
-func mockGetBanksResponseData() string {
-	return fmt.Sprintf(`{
-    "requestSuccessful": true,
-    "responseMessage": "success",
-    "responseCode": "0",
-    "responseBody": [
-        {
-            "name": "Access bank",
-            "code": "044",
-            "ussdTemplate": "*901*Amount*AccountNumber#",
-            "baseUssdCode": "*901#",
-            "transferUssdTemplate": "*901*AccountNumber#"
-        },
-        {
-            "name": "Coronation Bank",
-            "code": "559",
-            "ussdTemplate": null,
-            "baseUssdCode": null,
-            "transferUssdTemplate": null
-        }
-	]
-}`)
-}
-
-func GenerateTransactionHash(secretKey string) string {
-	rawStr := fmt.Sprintf("%v|%v|%v|%v|%v", secretKey, PaymentReference, Amount, PaidOn, TransferReference)
-	h := sha512.New()
-	h.Write([]byte(rawStr))
-	return fmt.Sprintf("%x", h.Sum(nil))
+    }`, TransferReference, PaymentReference, Amount, Amount, PaidOn, GenerateTransactionHash(SecretKey), AccountName, Amount, CustomerEmail, CustomerName)
 }
 
 //MockAPIServer initializes a test HTTP server useful for request mocking, Integration tests and Client configuration

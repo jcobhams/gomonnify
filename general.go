@@ -41,6 +41,7 @@ func (g *general) GetTransaction(reference string) (*GeneralTransactionResponse,
 	url := fmt.Sprintf("%v/v2/transactions/%v", g.APIBaseUrl, reference)
 	rawResponse, statusCode, err := g.getRequest(url, requestAuthTypeBearer)
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 
