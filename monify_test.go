@@ -170,12 +170,9 @@ func TestGeneral_GetTransaction(t *testing.T) {
 }
 
 func TestGeneral_VerifyTransaction(t *testing.T) {
-	tx, _ := client.General.GetTransaction(testhelpers.TransferReference)
-	assert.False(t, client.General.VerifyTransaction(&tx.ResponseBody, false))
-
 	//Set Secret Key To Be Test Environemnt Secret Key
 	client.General.Config.SecretKey = testhelpers.SecretKey
-	tx, _ = client.General.GetTransaction(testhelpers.TransferReference)
+	tx, _ := client.General.GetTransaction(testhelpers.TransferReference)
 	assert.True(t, client.General.VerifyTransaction(&tx.ResponseBody, false))
 	assert.True(t, client.General.VerifyTransaction(&tx.ResponseBody, true))
 }

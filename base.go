@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/jcobhams/gomonnify/testhelpers"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -34,6 +35,7 @@ func newBase(config Config) *base {
 	case EnvTest:
 		if testUrl, ok := os.LookupEnv("GOMONNIFY_TESTURL"); ok {
 			b.APIBaseUrl = testUrl
+			b.Config.SecretKey = testhelpers.SecretKey
 		} else {
 			panic("gomonnify is running in test mode but no test url provided. Please Set GOMONNIFY_TESTURL env var")
 		}
